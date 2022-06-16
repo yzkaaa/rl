@@ -4,7 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 
 /**
- * 承担着返回首页文章列表的类
+ *
  *     "success": true,
  *     "code": 200,
  *     "msg": "success",

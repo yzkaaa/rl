@@ -2,7 +2,6 @@ package com.yzk.sys.utils;
 
 
 import com.yzk.sys.dao.pojo.SysUser;
-
 public class UserThreadLocal {
 
     private UserThreadLocal(){}

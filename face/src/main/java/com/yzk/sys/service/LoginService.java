@@ -36,4 +36,10 @@ public interface LoginService {
      * @return
      */
     Result register(LoginParam loginParam);
+
+    /**
+     * 修改密码
+     * @param loginParam
+     */
+    Result Change(LoginParam loginParam);
 }

@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.yzk.sys.dao.mapper.MeetingMapper">
+    <insert id="addParticipants">
+        insert into ms_meeting_participants (meetingid, sysuserid) values
+        <foreach collection="mps" item="mp" separator=",">
+            (#{meetingid},#{mp})
+        </foreach>
+    </insert>
+    <select id="getmeetingofmybook" resultType="com.yzk.sys.vo.params.MeetingDTO">
+        select m.meetingid,
+               m.meetingname,
+               m.starttime,
+               m.endtime,
+               m.reservationtime,
+               m.roomid,
+               m.reservationistid,
+               e.account as reservationistname,
+               mr.roomname    as roomname
+        from ms_meeting as m,
+             ms_sys_user as e,
+             ms_meeting_room as mr
+        where m.reservationistid = e.id
+          and m.roomid = mr.id
+          and e.id =#{id}
+          and m.status = 0;
+    </select>
+
+     <update id="cancelmeeting">
+        update ms_meeting
+        set canceledreason = #{canceledreason},
+            status         = 1,
+            canceledtime   = now()
+        where meetingid = #{meetingid}
+    </update>
+
+      <select id="listMeetingDTOs" resultType="com.yzk.sys.vo.params.MeetingDTO">
+        select m.meetingid,m.meetingname, m.starttime, m.endtime, m.reservationtime, m.roomid, m.reservationistid,
+        e.employeename as reservationistname, mr.roomname as roomname
+        from ms_meeting as m,ms_sys_user as e,ms_meeting_room as mr
+        where m.reservationistid = e.id
+        and m.roomid = mr.id
+        <if test="mdto.meetingname!=null">
+            and meetingname like concat('%',#{mdto.meetingname},'%')
+        </if>
+        <if test="mdto.roomname!=null">
+            and mr.roomname like concat('%',#{mdto.roomname},'%')
+        </if>
+        <if test="mdto.reservationistname!=null">
+            and e.employeename like concat('%',#{mdto.reservationistname},'%')
+        </if>
+        <if test="mdto.starttime!=null ">
+            and starttime &gt;= #{mdto.starttime}
+        </if>
+        <if test="mdto.endtime!=null ">
+            and endtime &lt;= #{mdto.endtime}
+        </if>
+        <if test="mdto.reservationtime!=null">
+            and m.reservationtime &gt;= #{mdto.reservationtime}
+        </if>
+        limit #{page},#{pagesize}
+    </select>
+
+
+    <select id="getTotal" resultType="long">
+        select count(*) from ms_meeting as m, ms_sys_user as e,ms_meeting_room as mr
+        where m.reservationistid = e.id
+        and m.roomid = mr.id
+        <if test="mdto.meetingname!=null">
+            and m.meetingname like concat('%',#{mdto.meetingname},'%')
+        </if>
+        <if test="mdto.roomname!=null">
+            and mr.roomname like concat('%',#{mdto.roomname},'%')
+        </if>
+        <if test="mdto.reservationistname!=null">
+            and e.nickname like concat('%',#{mdto.reservationistname},'%')
+        </if>
+        <if test="mdto.starttime!=null ">
+            and starttime &gt;= #{mdto.starttime}
+        </if>
+        <if test="mdto.endtime!=null ">
+            and endtime &lt;= #{mdto.endtime}
+        </if>
+        <if test="mdto.reservationtime!=null">
+            and m.reservationtime &gt;= #{mdto.reservationtime}
+        </if>
+    </select>
+    <select id="getMeetingById" resultType="com.yzk.sys.dao.pojo.Meeting">
+        select ms_meeting.*
+        from ms_meeting,
+             ms_meeting_participants
+        where  ms_meeting_participants.meetingid = ms_meeting.meetingid
+          and  ms_meeting_participants.sysuserid = #{employeeid}
+          and status = 0
+    </select>
+</mapper>

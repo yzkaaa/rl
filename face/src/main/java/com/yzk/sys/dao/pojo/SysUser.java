@@ -1,5 +1,7 @@
 package com.yzk.sys.dao.pojo;
 
+import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableId;
 import lombok.Data;
 
 /**
@@ -10,11 +12,12 @@ public class SysUser {
 
     //@TableId(type = IdType.ASSIGN_ID)//默认id类型
     // 以后用户多了之后，要进行分表操作，id就需要用分布式id 了
-    private Long id;
+     @TableId(type = IdType.AUTO)
+    private Integer id;
 
     private String account;
 
-    private Integer admin;
+    private Integer role;
 
     private String avatar;
 

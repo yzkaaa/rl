@@ -13,7 +13,7 @@ public class JWTUtils {
 
     private static final String jwtToken = "123456Mszlu!@#$$";
 
-    public static String createToken(Long userId){
+    public static String createToken(Integer userId){
         Map<String,Object> claims = new HashMap<>();
         claims.put("userId",userId);
         JwtBuilder jwtBuilder = Jwts.builder()
@@ -35,12 +35,4 @@ public class JWTUtils {
         return null;
 
     }
-
-    public static void main(String[] args) {
-        String token = JWTUtils.createToken(100L);
-        System.out.println(token);
-        Map<String, Object> map = JWTUtils.checkToken(token);
-        System.out.println(map.get("userId"));
-    }
-
 }

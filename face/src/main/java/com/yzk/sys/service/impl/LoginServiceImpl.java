@@ -18,11 +18,6 @@ import org.springframework.stereotype.Service;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
-//Spring 自动扫描组件// https://blog.csdn.net/u010002184/article/details/72870065
-// @Component – 指示自动扫描组件。
-//@Repository – 表示在持久层DAO组件。
-//@Service – 表示在业务层服务组件。
-//@Controller – 表示在表示层控制器组件。
 @Service
 public class LoginServiceImpl implements LoginService {
     //加密盐用于加密
@@ -31,8 +26,6 @@ public class LoginServiceImpl implements LoginService {
     private SysUserService sysUserService;
     @Autowired
     private RedisTemplate<String, String> redisTemplate;
-
-
 
     @Override
     public Result login(LoginParam loginParam) {
@@ -46,11 +39,6 @@ public class LoginServiceImpl implements LoginService {
          */
         String account = loginParam.getAccount();
         String password = loginParam.getPassword();
-        /**
-         *  public static boolean isBlank(String str)
-         * 判断某字符串是否为空或长度为0或由空白符(whitespace)构成
-         * https://developer.aliyun.com/article/543275
-         */
 
         if (StringUtils.isBlank(account) || StringUtils.isBlank(password)){
             return Result.fail(ErrorCode.PARAMS_ERROR.getCode(),ErrorCode.PARAMS_ERROR.getMsg());
@@ -129,7 +117,7 @@ public class LoginServiceImpl implements LoginService {
         sysUser.setCreateDate(System.currentTimeMillis());
         sysUser.setLastLogin(System.currentTimeMillis());
         sysUser.setAvatar("/static/img/logo.b3a48c0.png");
-        sysUser.setAdmin(1); //1 为true
+        sysUser.setRole(1); //1 为true
         sysUser.setDeleted(0); // 0 为false
         sysUser.setSalt("");
         sysUser.setStatus("");
@@ -142,6 +130,49 @@ public class LoginServiceImpl implements LoginService {
         redisTemplate.opsForValue().set("TOKEN_"+token, JSON.toJSONString(sysUser),1, TimeUnit.DAYS);
         return Result.success(token);
 
+
+    }
+
+    @Override
+    public Result Change(LoginParam loginParam) {
+        /**
+         * 1. 判断参数 是否合法
+         * 2. 判断账户是否存在，不存在，提示失败
+         * 3. 存在，则修改密码
+         * 4. 生成token
+         * 5. 存入redis 并返回
+         * 6. 注意 加上事务，一旦中间的任何过程出现问题，修改密码的用户 需要回滚
+         */
+         String account  = loginParam.getAccount();
+         String password = loginParam.getPassword();
+         String avatar = loginParam.getAvatar();
+         String newpassword = loginParam.getNewpassword();
+         String nickname = loginParam.getNickname();
+         String mobilePhoneNumber = loginParam.getMobilePhoneNumber();
+
+        if (StringUtils.isBlank(account) || StringUtils.isBlank(password)||(StringUtils.isBlank(newpassword))){
+            return Result.fail(ErrorCode.PARAMS_ERROR.getCode(),ErrorCode.PARAMS_ERROR.getMsg());
+        }
+
+         String pwd = DigestUtils.md5Hex(password+ slat);
+         String npwd = DigestUtils.md5Hex(newpassword+ slat);
+         SysUser sysUser=sysUserService.findUser(account,pwd);
+         if (sysUser == null){
+            return Result.fail(ErrorCode. ACCOUNT_PWD_NOT_EXIST.getCode(),ErrorCode. ACCOUNT_PWD_NOT_EXIST.getMsg());
+        }
+        if (pwd!=npwd){
+            sysUser.setPassword(npwd);
+        }
+         sysUser.setMobilePhoneNumber(mobilePhoneNumber);
+         sysUser.setNickname(nickname);
+         sysUser.setAvatar(avatar);
+        this.sysUserService.Revise(sysUser);
+
+        //token
+        String token = JWTUtils.createToken(sysUser.getId());
+
+        redisTemplate.opsForValue().set("TOKEN_"+token, JSON.toJSONString(sysUser),1, TimeUnit.DAYS);
+        return Result.success(token);
 
     }
 }
